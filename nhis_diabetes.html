@@ -1,0 +1,352 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>NHIS - Adults Diabetes 2020</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Home Page</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">Projects</a></li>
+						</ul>
+						<ul class="icons">
+							<li><a href="https://www.linkedin.com/in/jesus-garcia3-da/" class="icon brands alt fa-linkedin"><span class="label">LinkedIn</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+								<header class="major">
+									<span class="date"></span>
+									<h1>National Health Interview Survey<br />
+									</h1>
+									<p>The National Health Interview Survey (NHIS) has monitored the health of the nation since 1957. NHIS data on a broad range of health topics are collected through personal household interviews. Survey results have been instrumental in providing data to track health status, health care access, and progress toward achieving national health objectives.</p>
+								</header>
+								<p>The National Center for Health Statistics provide annual national estimates of selected health topics for adults <br />
+									aged 18 years and over based on final data from the National Health Interview Survey.<br />
+									Estimates can be grouped by characteristics such as age, race, or sex.<br />
+									However, if a person would like to know how the people surveyed are distributed, they would not be able to do it.
+									</p>
+								<h3>Ask:</h3>
+									<p>The first step is to determine what informaiton is needed.<br/>
+										I'll analyse the survey responses to determine how the US 2020 diabetic population is distributed:
+										<li>How many people were surveyed?</li>
+										<li>How many diabetic patients were surveyed?</li>
+										<li>How are the patients distributed by gender?</li>
+										<li>What race do most diabetic patients belongs to?</li>
+										<li>What diabetes type do most diabetic patients belongs to?</li>
+										<li>What family income do most diabetic patients belongs to?</li>
+										<li>What education level do most diabetic patients belongs to?</li>
+									</p>
+								<h3>Prepare:</h3>
+								<p>This dataset was downloaded from the CDC's National Center for Health Statistics website as a CSV file.
+									It contains the 2020 adults survey responses.<br />
+									You can access the dataset by clicking on this link: 
+									<a href="https://www.cdc.gov/nchs/nhis/2020nhis.htm">2020 NHIS</a><br/>
+									I imported the CSV file into Microsoft SSMS to clean and analyse the data.
+								</p>
+								<h3>Process:</h3>
+								<p>I first wanted to check how many columns were in the dataset and their information:
+								</p>
+<pre class="wp-block-code"><code>-- To check columns information
+SELECT 
+	*
+FROM 
+	INFORMATION_SCHEMA.COLUMNS
+WHERE 
+	table_name = 'adult20'</code></pre>
+								<p>I found there were 317 columns in the dataset and they were real data type.
+								</p>
+								<img src="images/NHIS/Total_rows.png" alt=""><br />
+								<img src="images/NHIS/Column_info.png" alt="" style="width:548.66px;height:170.66px;"><br />
+								<p>I used the 2020 NHIS codebook to find which columns I would need for the Analysis:
+								</p>
+								<img src="images/NHIS/Adult_codebook.png" alt="" style="width:261.33px;height:120.66px;"><br />
+								<img src="images/NHIS/Codebook_reference.png" alt="" style="width:424.66px;height:388px;"><br />
+<pre class="wp-block-code"><code>-- To get the columns I need for the analysis
+SELECT
+	SEX_A AS Gender,
+	HISPALLP_A AS Race,
+	DIBEV_A AS Diagnosed_Diabetes,
+	DIBTYPE_A AS Diabetes_type,
+	EDUC_A AS Education_level,
+	INCGRP_A AS Family_income
+FROM 
+	adult20
+</code></pre>
+								<p>I chose to save the results into a new table as the original dataset can be used to analyse other medical conditions.
+								</p>
+<pre class="wp-block-code"><code>-- To check for null values
+SELECT
+	*
+FROM
+	Diabetes_Adult
+WHERE
+	Gender IS NULL OR
+	Race IS NULL OR
+	Diagnosed_Diabetes IS NULL OR
+	Diabetes_type IS NULL OR
+	Education_level IS NULL OR
+	Family_income IS NULL
+</code></pre>
+<pre class="wp-block-code"><code>-- To alter column types, it was done with all the columns
+ALTER TABLE Diabetes_Adult
+ALTER COLUMN Gender nvarchar(255)
+</code></pre>
+<pre class="wp-block-code"><code>-- To change Gender column values
+UPDATE Diabetes_Adult
+SET Gender = CASE WHEN Gender = '1' THEN 'Male'
+	WHEN Gender = '2' THEN 'Female'
+	WHEN Gender = '7' THEN 'Refused'
+	WHEN Gender = '9' THEN 'Dont Know'
+	ELSE Gender
+	END
+
+-- To change Race column values
+UPDATE Diabetes_Adult
+SET Race = CASE WHEN Race = '1' THEN 'Hispanic'
+	WHEN Race = '2' THEN 'White only'
+	WHEN Race = '3' THEN 'Black/African American only'
+	WHEN Race = '4' THEN 'Asian only'
+	WHEN Race = '5' THEN 'American Indian/Alaska Native only'
+	WHEN Race = '6' THEN 'American Indian/Alaska Native and any other group'
+	WHEN Race = '7' THEN 'Other single and multiple races'
+	WHEN Race = '97' THEN 'Refused'
+	WHEN Race = '98' THEN 'Not Ascertained'
+	WHEN Race = '99' THEN 'Dont Know'
+	ELSE Race
+	END
+
+-- To change Diagnosed_Diabetes column values
+UPDATE Diabetes_Adult
+SET Diagnosed_Diabetes = CASE WHEN Diagnosed_Diabetes = '1' THEN 'Yes'
+	WHEN Diagnosed_Diabetes = '2' THEN 'No'
+	WHEN Diagnosed_Diabetes = '7' THEN 'Refused'
+	WHEN Diagnosed_Diabetes = '8' THEN 'Not Ascertained'
+	WHEN Diagnosed_Diabetes = '9' THEN 'Dont Know'
+	ELSE Diagnosed_Diabetes
+	END
+
+-- To change Diabetes_type column values
+UPDATE Diabetes_Adult
+SET Diabetes_type = CASE WHEN Diabetes_type = '0' THEN 'Dont have diabetes'
+	WHEN Diabetes_type = '1' THEN 'Type 1'
+	WHEN Diabetes_type = '2' THEN 'Type 2'
+	WHEN Diabetes_type = '3' THEN 'Other type of diabetes'
+	WHEN Diabetes_type = '7' THEN 'Refused'
+	WHEN Diabetes_type = '8' THEN 'Not Ascertained'
+	WHEN Diabetes_type = '9' THEN 'Dont Know'
+	ELSE Diabetes_type
+	END
+
+-- To change Education_level column values
+UPDATE Diabetes_Adult
+SET Education_level = CASE WHEN Education_level = '0' THEN 'Never attended/kindergarten only'
+	WHEN Education_level = '1' THEN 'Grade 1-11'
+	WHEN Education_level = '2' THEN '12th grade, no diploma'
+	WHEN Education_level = '3' THEN 'GED or equivalent'
+	WHEN Education_level = '4' THEN 'High School Graduate'
+	WHEN Education_level= '5' THEN 'Some college, no degree'
+	WHEN Education_level= '6' THEN 'Associate degree: occupational, technical, or vocational program'
+	WHEN Education_level= '7' THEN 'Associate degree: academic program'
+	WHEN Education_level= '8' THEN 'Bachelors degree (Example: BA, AB, BS, BBA)'
+	WHEN Education_level= '9' THEN 'Masters degree (Example: MA, MS, MEng, MEd, MBA)'
+	WHEN Education_level= '10' THEN 'Professional School degree (Example: MD, DDS, DVM, JD)'
+	WHEN Education_level= '11' THEN 'Doctoral degree (Example: PhD, EdD)'
+	WHEN Education_level= '97' THEN 'Refused'
+	WHEN Education_level= '98' THEN 'Not Ascertained'
+	WHEN Education_level= '99' THEN 'Dont Know'
+	ELSE Education_level
+	END
+
+-- To change Family_income column values
+UPDATE Diabetes_Adult
+SET Family_income = CASE WHEN Family_income = '1' THEN '$0 to $34,999'
+	WHEN Family_income = '2' THEN '$35,000 to $49,999'
+	WHEN Family_income = '3' THEN '$50,000 to $74,999'
+	WHEN Family_income = '4' THEN '$75,000 to $99,999'
+	WHEN Family_income = '5' THEN '$100,000 or greater'
+	WHEN Family_income = '8' THEN 'Not Ascertained'
+	ELSE Family_income
+	END
+</code></pre>
+								<h3>Analyse:</h3>
+								<p>I analyzed the dataset in SSMS:
+								</p>
+<pre class="wp-block-code"><code>-- To check how many people were surveyed
+SELECT
+	COUNT(Gender)
+FROM
+	Diabetes_Adult
+
+-- To check how many diabetic patients were surveyed
+SELECT
+	COUNT(Diagnosed_Diabetes)
+FROM
+	Diabetes_Adult
+WHERE
+	Diagnosed_Diabetes = 'Yes'
+
+-- To check how the patients are distributed by gender
+SELECT
+	Gender,
+	COUNT(Diagnosed_Diabetes) AS Patients_By_Gender
+FROM
+	Diabetes_Adult
+WHERE
+	Diagnosed_Diabetes = 'Yes'
+GROUP BY
+	Gender
+ORDER BY
+	Patients_By_Gender DESC
+
+-- To check what race do most diabetic patients belongs to
+SELECT
+	TOP 1
+	Race,
+	COUNT(Diagnosed_Diabetes) AS Patients_By_Race
+FROM
+	Diabetes_Adult
+WHERE
+	Diagnosed_Diabetes = 'Yes'
+GROUP BY
+	Race
+ORDER BY
+	Patients_By_Race DESC
+
+-- To check what diabetes type do most diabetic patients belongs to
+SELECT
+	TOP 1
+	Diabetes_type,
+	COUNT(Diagnosed_Diabetes) AS Patients_By_Diabetes_type
+FROM
+	Diabetes_Adult
+WHERE
+	Diagnosed_Diabetes = 'Yes'
+GROUP BY
+	Diabetes_type
+ORDER BY
+	Patients_By_Diabetes_type DESC
+
+-- To check what family income do most diabetic patients belongs to
+SELECT
+	TOP 1
+	Family_income,
+	COUNT(Diagnosed_Diabetes) AS Patients_By_Family_income
+FROM
+	Diabetes_Adult
+WHERE
+	Diagnosed_Diabetes = 'Yes'
+GROUP BY
+	Family_income
+ORDER BY
+	Patients_By_Family_income DESC	
+
+-- To check what education level do most diabetic patients belongs to
+SELECT
+	TOP 1
+	Education_level,
+	COUNT(Diagnosed_Diabetes) AS Patients_By_Education_level
+FROM
+	Diabetes_Adult
+WHERE
+	Diagnosed_Diabetes = 'Yes'
+GROUP BY
+	Education_level
+ORDER BY
+	Patients_By_Education_level DESC	
+</code></pre>
+								<h3>Share:</h3>
+								<p>I saved the dataset into a CSV file and imported the data into Power BI.<br/>
+									I created a new measure to have the total number of diabetic patients available in Power BI.
+								</p>
+								<img src="images/NHIS/Power_BI_Total_diabetes.png" alt=""><br />
+								<p>I created the visualizations in Power BI to share the findings.<br/>
+								</p>
+								<p><b>Insights:</b>
+									<li>How many people were surveyed?</li>
+									People surveyed: 31568
+									<li>How many diabetic patients were surveyed?</li>
+									Diabetic patients surveyed:3356
+									<li>How are the patients distributed by gender?</li>
+									Female: 1719<br/>
+									Male: 1636<br/>
+									Dont Know: 1<br/>
+									<li>What race do most diabetic patients belongs to?</li>
+									White only: 2168
+									<li>What diabetes type do most diabetic patients belongs to?</li>
+									Type 2: 2796
+									<li>What family income do most diabetic patients belongs to?</li>
+									$0 to $34,999: 1377
+									<li>What education level do most diabetic patients belongs to?</li>
+									High School Graduate: 839
+								</p>
+								<p>You can utilize the interactive Power BI dashboard here:</p>
+								<iframe title="Diabetes Adult 2020" width="800" height="486" src="https://app.powerbi.com/view?r=eyJrIjoiZTIxMTBkNjctZTI4NS00YWZiLWI4NzEtNzUyOTAxMjRjOGFhIiwidCI6ImUxZWVjNjNiLTczYzgtNDQ0ZC1iMjQ4LWVmMWRlYjY1MmE3YiJ9&pageName=ReportSection" frameborder="0" allowFullScreen="true"></iframe>
+							</section>
+
+					</div>
+
+				<!-- Footer -->
+				<footer id="footer">
+					<section class="split contact">
+						<section class="alt">
+							<h3>Address</h3>
+							<p>Hermosillo, Sonora, Mexico</p>
+						</section>
+						<section>
+							<h3>Phone</h3>
+							<p> +52 (662) 471-3656</p>
+						</section>
+						<section>
+							<h3>Email</h3>
+							<p><a href="mailto:jesusgarciamercado88@gmail.com">jesusgarciamercado88@gmail.com</a></p>
+						</section>
+						<section>
+							<h3>Social</h3>
+							<ul class="icons alt">
+								<li><a href="https://www.linkedin.com/in/jesus-garcia3-da/" class="icon brands alt fa-linkedin"><span class="label">LinkedIn</span></a></li>
+							</ul>
+						</section>
+					</section>
+				</footer>
+
+			<!-- Copyright -->
+				<div id="copyright">
+					<ul><li>&copy; Untitled</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+				</div>
+
+		</div>
+
+	<!-- Scripts -->
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.scrollex.min.js"></script>
+		<script src="assets/js/jquery.scrolly.min.js"></script>
+		<script src="assets/js/browser.min.js"></script>
+		<script src="assets/js/breakpoints.min.js"></script>
+		<script src="assets/js/util.js"></script>
+		<script src="assets/js/main.js"></script>
+
+</body>
+</html>
