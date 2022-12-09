@@ -64,7 +64,7 @@
 									It contains the 2020 adults survey responses.<br />
 									You can access the dataset by clicking on this link: 
 									<a href="https://www.cdc.gov/nchs/nhis/2020nhis.htm">2020 NHIS</a><br/>
-									I imported the CSV file into Microsoft SSMS to clean and analyse the data.
+									I imported the CSV file into SQLServer to clean and analyse the data.
 								</p>
 								<h3>Process:</h3>
 								<p>I first wanted to check how many columns were in the dataset and their information:
@@ -192,7 +192,7 @@ SET Family_income = CASE WHEN Family_income = '1' THEN '$0 to $34,999'
 	END
 </code></pre>
 								<h3>Analyse:</h3>
-								<p>I analyzed the dataset in SSMS:
+								<p>I analyzed the dataset in SQLServer:
 								</p>
 <pre class="wp-block-code"><code>-- To check how many people were surveyed
 SELECT
